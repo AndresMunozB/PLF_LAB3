@@ -1,0 +1,12 @@
+PROGRAMA program1;
+
+INICIO
+valor := 10; 
+	INICIO
+		MIENTRAS  ( valor > valor) HACER 
+		valor := 3; 
+	FIN; 
+SI  ( valor = valor ) 
+	valor := 100	  
+
+.

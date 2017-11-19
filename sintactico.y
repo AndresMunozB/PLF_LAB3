@@ -1,99 +1,113 @@
 %{
-
-/********************
-  Declaraciones en C
-**********************/
-
   #include <stdio.h>
-  #include <stdlib.h>
-  #include <math.h>
   extern int yylex(void);
   extern char *yytext;
-  extern int linea;
-  extern FILE *yyin;
   void yyerror(char *s);
 %}
 
-/************************
-  Declaraciones de Bison
-*************************/
-
-/*  Especifica la coleccion completa de tipos de datos para poder usar
-   varios tipos de datos en los terminales y no terminales*/
-%union
-{
-  float real;
-}
-/* Indica la produccion con la que inicia nuestra gramatica*/
-%start Exp_l
-
-/* Especificacion de termines, podemos especificar tambien su tipo  */
-%token <real> NUMERO
-%token MAS
-%token MENOS
-%token IGUAL
-%token PTOCOMA
-%token POR
+%token IDENTIFICADOR
+%token STRING
+%token NUMERO_ENTERO
+%token NUMERO_REAL
+%token ABS
+%token BAJAR
+%token CARACTER
+%token CONST
+%token CUADR
+%token CUANDO
 %token DIV
-%token PAA
-%token PAC
+%token ENTERO
+%token ENTONCES
+%token ESCRIB
+%token ESCRIBL
+%token FALSO
+%token FIN
+%token HACER
+%token HASTA
+%token IMPAR
+%token INICIO
+%token LEER
+%token LOGICO
+%token MIENTRAS
+%token NO
+%token O
+%token PROGRAMA
+%token REAL
+%token REPITA
+%token RESTO
+%token SEA
+%token SI
+%token SINO
+%token SUBIR
+%token VAR
+%token VERDAD
+%token Y
 
-/* No Terminales, que tambien podemos especificar su tipo */
-%type <real> Exp
-%type <real> Calc
-%type <real> Exp_l
-/*  Definimos las precedencias de menor a mayor */
-%left MAS MENOS
-%left POR DIV
+
+%left '*' '/'
+%left '+' '-'
+%right NOT
+%left AND OR
+%right '='
+
 
 %%
- /**********************
-  Reglas Gramaticales
- ***********************/
+programa : PROGRAMA IDENTIFICADOR ';' declaraciones cuerpo '.' ;
+cuerpo : sentencia_compuesta ;
+identificador_de_tipo : ENTERO | REAL | CARACTER | LOGICO ;
+sentencia : sentencia_compuesta | llamada_de_proceso | sentencia_asignacion | sentencia_selectiva | sentencia_repetitiva | ;
+sentencia_asignacion : IDENTIFICADOR ':''=' expresion ;
+sentencia_selectiva : sentencia_si | sentencia_cuando ;
+sentencia_repetitiva : sentencia_mientras | sentencia_para | sentencia_repita ;
+sentencia_mientras : MIENTRAS expresion HACER sentencia ;
+expresion : expresion_simple | 
+			expresion_simple '<' expresion_simple | 
+			expresion_simple '<''=' expresion_simple | 
+			expresion_simple '=' expresion_simple |
+			expresion_simple '<''>' expresion_simple | 
+			expresion_simple '>' expresion_simple | 
+			expresion_simple '>''=' expresion_simple ;
+factor : constante_sin_signo | IDENTIFICADOR | llamada_funcion | '(' expresion ')' | NO factor ;
+llamada_funcion : identificador_funcion '(' parametro ')' ;
+parametro : expresion | IDENTIFICADOR ;
+identificador_de_proceso : ESCRIB | ESCRIBL | LEER ;
+identificador_funcion : ABS | CUADR | IMPAR ;
+constante : constante_sin_signo | '+' constante_sin_signo | '-' constante_sin_signo;
+constante_sin_signo : identificador_constante | NUMERO_ENTERO | NUMERO_REAL | STRING ;
+identificador_constante : IDENTIFICADOR | FALSO | VERDAD ;
+sentencia_si : SI expresion ENTONCES sentencia | SI expresion ENTONCES sentencia SINO sentencia ;
+etiqueta : constante ;
+sentencia_para : SUBIR IDENTIFICADOR ':''=' expresion ',' expresion HACER | BAJAR IDENTIFICADOR ':''=' expresion ',' expresion HACER ;
 
 
-Exp_l:                   Exp_l Calc  
-                               |Calc
-                                               ;
-Calc       :  Exp PTOCOMA {printf ("%4.1f\n",$1)}                              
-                                 ;
-/* con el símbolo de $$ asignamos el valor semántico de toda
-  la acción de la derecha y se la asignamos al no terminal de
-   la izquierda, en la siguiente regla, se la asigna a Exp.
-                Para poder acceder al valor de los terminales y no terminales del lado
-   derecho usamos el símbolo $ y le concatenamos un numero que representa
-   la posición en la que se encuentra es decir si tenemos
+declaraciones : d8 d9
+d8 : CONST d10 | ; 
+d10 : IDENTIFICADOR '=' constante ';' d10 | IDENTIFICADOR '=' constante ';' ;
+d9 : VAR d11 | ; 
+d11 : IDENTIFICADOR ':' identificador_de_tipo ';' d11 | IDENTIFICADOR ':' identificador_de_tipo ';' ;
 
-  A --> B NUMERO C
+sentencia_compuesta : INICIO d1 FIN ;
+d1 :  sentencia ';' d1 | sentencia ;
 
-  Si queremos usar le valor que tiene el no terminal B usamos $1, si queremos
-  usar el valor que tiene NUMERO usamos $2 y así sucesivamente.
+sentencia_repita : REPITA d1 HASTA expresion ;
+
+termino : factor d2 ;
+d2 : '*' factor d2 | '/' factor d2 | Y factor d2 | DIV factor d2 | RESTO factor d2 | ;
+
+llamada_de_proceso : identificador_de_proceso '(' d3 ')' ;
+d3: parametro ',' d3 | parametro  ;
+
+sentencia_cuando : CUANDO expresion SEA d4 FIN ;
+d4 : d5 ':' sentencia ';' d4 | d5 ':' sentencia ;
+d5 : etiqueta ',' d5| etiqueta ;
+
+expresion_simple : d6 termino d7 ;
+d6 : '+' | '-' | ;
+d7 : '+' termino d7 | '-' termino d7 | O termino d7 | ;
 
 
-*/
-Exp :                      NUMERO {$$=$1;}
-                                               |Exp MAS Exp {$$=$1+$3;}
-                                               |Exp MENOS Exp {$$=$1-$3;}
-                                               |Exp POR Exp {$$=$1*$3;}
-                                               |Exp DIV Exp {$$=$1/$3;}
-                                               |PAA Exp PAC {$$=$2;}
-                                               ;
+
+
 %%
-/********************
-  Codigo C Adicional
-**********************/
-void yyerror(char *s)
-{
-  printf("Error sintactico %s",s);
-}
 
-int main(int argc,char **argv)
-{
-  if (argc>1)
-                yyin=fopen(argv[1],"rt");
-  else
-                yyin=stdin;
 
-  yyparse();
-  return 0;
-}
