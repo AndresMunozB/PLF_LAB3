@@ -86,7 +86,7 @@ etiqueta : constante ;
 sentencia_para : SUBIR IDENTIFICADOR ':''=' expresion ',' expresion HACER | BAJAR IDENTIFICADOR ':''=' expresion ',' expresion HACER ;
 
 
-declaraciones : d8 d9 ;
+declaraciones : d8 d9 ;	
 d8 : CONST d10 | ; 
 d10 : IDENTIFICADOR '=' constante ';' d10 | IDENTIFICADOR '=' constante ';' ;
 d9 : VAR d11 | ; 
