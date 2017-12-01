@@ -44,12 +44,18 @@
 %token Y
 
 
-%left '*' '/'
-%left '+' '-'
-%right NOT
-%left AND OR
-%right '='
 
+%left ENTONCES
+%left SINO
+%left '*'
+%left '/'
+%left '+'
+%left '-'
+%left Y
+%left O
+%right NO
+%right '='
+%start programa
 
 %%
 programa : PROGRAMA IDENTIFICADOR ';' declaraciones cuerpo '.' ;
@@ -80,7 +86,7 @@ etiqueta : constante ;
 sentencia_para : SUBIR IDENTIFICADOR ':''=' expresion ',' expresion HACER | BAJAR IDENTIFICADOR ':''=' expresion ',' expresion HACER ;
 
 
-declaraciones : d8 d9
+declaraciones : d8 d9 ;
 d8 : CONST d10 | ; 
 d10 : IDENTIFICADOR '=' constante ';' d10 | IDENTIFICADOR '=' constante ';' ;
 d9 : VAR d11 | ; 
